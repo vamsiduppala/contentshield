@@ -50,7 +50,7 @@ export async function getCreatorContent() {
       items: data.recentScans.map((s: any): CreatorContent => ({
         id: s.id,
         title: s.video?.originalFileName || "Untitled",
-        platform: s.video?.platformPreset || "YouTube",
+        platform: s.platformPreset || "YouTube",
         status: s.status,
         safety_score: s.result?.safetyScore || 0,
         risk_count: s.result?.totalFindings || 0,

@@ -15,6 +15,7 @@ export class DashboardService {
     ]);
     const averageSafetyScore = completed.length ? Math.round(completed.reduce((sum, item) => sum + item.safetyScore, 0) / completed.length) : 0;
     return {
+      user,
       totalScans,
       averageSafetyScore,
       highRiskVideos: completed.filter((item) => item.verdict === "high_risk" || item.verdict === "critical_risk").length,
