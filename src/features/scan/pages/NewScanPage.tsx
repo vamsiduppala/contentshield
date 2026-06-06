@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "../../../components/dashboard/DashboardLayout";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
-import { createScan } from "../../../lib/mockApi";
+import { api } from "../../../lib/api";
 import { defaultScanConfig } from "../data/mockScans";
 import { FilePreviewCard } from "../components/FilePreviewCard";
 import { ScanConfigPanel } from "../components/ScanConfigPanel";
@@ -17,14 +17,49 @@ export function NewScanPage() {
   const [file, setFile] = useState<MockUploadFile | null>(null);
   const [config, setConfig] = useState<ScanConfig>(defaultScanConfig);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const startScan = async () => {
-    if (!file) {
+    if (!file?.file) {
       setError("Select a video before starting the AI scan.");
       return;
     }
-    const scan = await createScan(file, config);
-    navigate(`/scan/processing/${scan.id}`);
+    setLoading(true);
+    setError("");
+    try {
+      const upload = await api.post("/videos/upload-url", {
+        fileName: file.name,
+        mimeType: file.file.type || "video/mp4",
+        fileSizeBytes: file.file.size
+      });
+
+      const uploadResponse = await fetch(upload.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.file.type || "video/mp4" },
+        body: file.file
+      });
+      if (!uploadResponse.ok) throw new Error(`Backblaze upload failed with ${uploadResponse.status}`);
+
+      await api.post(`/videos/${upload.videoId}/confirm-upload`, {});
+      const scan = await api.post("/scans", {
+        videoId: upload.videoId,
+        scanDepth: config.scanDepth.toLowerCase(),
+        platformPreset: config.platform.toLowerCase(),
+        contentType: config.contentType.toLowerCase(),
+        language: config.language.toLowerCase(),
+        enabledChecks: {
+          speech: config.includeSpeech,
+          ocr: config.includeOcr,
+          captions: config.includeCaptions,
+          context: config.includeSensitiveContext
+        }
+      });
+      navigate(`/scan/processing/${scan.scanId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload or scan creation failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,7 +71,7 @@ export function NewScanPage() {
             <h1 className="mt-2 text-4xl font-semibold tracking-tight md:text-6xl">Start an AI monetization safety scan.</h1>
             <p className="mt-4 max-w-2xl leading-8 text-white/56">Upload Video → Scan → Review Risks → Export Report. Module 2 stops at results summary.</p>
           </div>
-          <Button onClick={startScan} disabled={!file}>Start AI Scan <ArrowRight size={17} /></Button>
+          <Button onClick={startScan} disabled={!file || loading}>{loading ? "Uploading..." : "Start AI Scan"} <ArrowRight size={17} /></Button>
         </header>
         {error && <div className="mb-5 rounded-2xl border border-amber/30 bg-amber/10 p-4 text-sm text-amber">{error}</div>}
         <div className="grid gap-5 xl:grid-cols-[1fr_25rem]">

@@ -7,5 +7,5 @@ export interface TranscriptionSegment {
 }
 
 export interface TranscriptionProvider {
-  transcribe(audioInput: { scanId: string; audioStorageKey?: string }): Promise<TranscriptionSegment[]>;
+  transcribe(audioInput: { scanId: string; mediaUrl?: string }): Promise<TranscriptionSegment[]>;
 }

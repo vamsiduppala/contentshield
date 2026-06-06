@@ -9,9 +9,10 @@ export class OcrService {
   scanFrames(scanId: string, scanDepth: "fast" | "balanced" | "deep") {
     const intervalSeconds = scanDepth === "fast" ? 10 : scanDepth === "balanced" ? 5 : 2;
     
-    if (process.env.MOCK_AI_MODE !== "false") {
+    if (process.env.MOCK_AI_MODE !== "false") return this.mockProvider.scanFrames({ scanId, intervalSeconds });
+    return this.realProvider.scanFrames({ scanId, intervalSeconds }).catch((error) => {
+      console.error("OCR.space scan failed, falling back to mock OCR", error);
       return this.mockProvider.scanFrames({ scanId, intervalSeconds });
-    }
-    return this.realProvider.scanFrames({ scanId, intervalSeconds });
+    });
   }
 }

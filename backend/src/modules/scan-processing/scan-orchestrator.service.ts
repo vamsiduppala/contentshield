@@ -6,6 +6,7 @@ import { AuditService } from "../../common/audit/audit.service";
 import { OcrService } from "../ocr/ocr.service";
 import { RiskAnalysisService } from "../risk-analysis/risk-analysis.service";
 import { ScoringService } from "../scoring/scoring.service";
+import { StorageService } from "../storage/storage.service";
 import { TranscriptionService } from "../transcription/transcription.service";
 import { ScanStatusService } from "./scan-status.service";
 
@@ -19,6 +20,7 @@ export class ScanOrchestratorService {
     private readonly captions: CaptionsService,
     private readonly risk: RiskAnalysisService,
     private readonly scoring: ScoringService,
+    private readonly storage: StorageService,
     private readonly notifications: NotificationsService,
     private readonly audit: AuditService
   ) {}
@@ -37,7 +39,8 @@ export class ScanOrchestratorService {
       await this.status.completeStep(scanId, "extract_audio", 24);
 
       await this.status.startStep(scanId, "transcribe_speech", 32);
-      const transcript = await this.transcription.transcribe(scanId);
+      const mediaUrl = await this.storage.getSignedDownloadUrl(scan.video.storageKey).catch(() => undefined);
+      const transcript = await this.transcription.transcribe(scanId, mediaUrl);
       await this.prisma.transcriptSegment.createMany({ data: transcript.map((item) => ({ ...item, scanJobId: scanId, source: "speech" })) });
       await this.status.completeStep(scanId, "transcribe_speech", 42);
 
@@ -89,7 +92,7 @@ export class ScanOrchestratorService {
           totalFindings: findings.length,
           ...counts,
           aiSummary: "This video contains advertiser-sensitive terms related to conflict, death, and political violence. Highest-risk moments appear between 01:10 and 03:40.",
-          modelVersion: "mock-ai-2026-06",
+          modelVersion: process.env.MOCK_AI_MODE === "false" ? "real-providers-with-fallback-2026-06" : "mock-ai-2026-06",
           generatedAt: new Date()
         }
       });

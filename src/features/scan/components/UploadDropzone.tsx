@@ -21,7 +21,7 @@ export function UploadDropzone({ onSelect, onError }: { onSelect: (file: MockUpl
       onError("Use a file under 1.5 GB for this demo scan.");
       return;
     }
-    onSelect({ name: file.name, size: file.size, type: file.type || ext });
+    onSelect({ name: file.name, size: file.size, type: file.type || ext, file });
   };
 
   return (
@@ -39,7 +39,7 @@ export function UploadDropzone({ onSelect, onError }: { onSelect: (file: MockUpl
       </motion.span>
       <div className="relative">
         <h2 className="text-3xl font-semibold tracking-tight">Drop your video into the AI scan bay.</h2>
-        <p className="mt-3 max-w-xl leading-7 text-white/55">Supports .mp4, .mov, .mkv, and .webm. Demo limit: 1.5 GB. No file is uploaded in Module 2.</p>
+        <p className="mt-3 max-w-xl leading-7 text-white/55">Supports .mp4, .mov, .mkv, and .webm. Files upload directly to your private Backblaze bucket.</p>
         <p className="mt-6 text-sm font-semibold text-acid">Browse video file</p>
       </div>
       <input ref={inputRef} type="file" className="sr-only" accept=".mp4,.mov,.mkv,.webm" onChange={(event) => selectFile(event.target.files?.[0])} />

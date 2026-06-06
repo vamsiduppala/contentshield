@@ -12,4 +12,8 @@ export class StorageService {
   getSignedDownloadUrl(storageKey: string) {
     return this.provider.getSignedDownloadUrl(storageKey);
   }
+
+  objectExists(storageKey: string) {
+    return this.provider.objectExists(storageKey);
+  }
 }

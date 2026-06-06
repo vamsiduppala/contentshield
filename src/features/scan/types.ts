@@ -83,4 +83,5 @@ export interface MockUploadFile {
   name: string;
   size: number;
   type: string;
+  file?: File;
 }

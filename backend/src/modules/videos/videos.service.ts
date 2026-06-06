@@ -33,6 +33,8 @@ export class VideosService {
 
   async confirmUpload(user: RequestUser, videoId: string) {
     const video = await this.getOwnedVideo(user, videoId);
+    const exists = await this.storage.objectExists(video.storageKey);
+    if (!exists) throw new AppError("UPLOAD_NOT_FOUND", "The uploaded file was not found in Backblaze. Upload the file before confirming.", 409);
     const confirmed = await this.prisma.video.update({ where: { id: video.id }, data: { status: "ready" } });
     this.audit.log("video.upload_confirmed", { organizationId: user.organizationId, userId: user.id, videoId });
     return confirmed;
