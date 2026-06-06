@@ -8,14 +8,17 @@ import { VideoReviewPlayer } from "./VideoReviewPlayer";
 import { useEditorSession } from "../hooks/useEditorSession";
 import { useFindingSelection } from "../hooks/useFindingSelection";
 import { useReviewProgress } from "../hooks/useReviewProgress";
+import { Card } from "../../../components/ui/Card";
+import { Button } from "../../../components/ui/Button";
 
 export function EditorWorkspace({ scanId }: { scanId: string }) {
   const navigate = useNavigate();
-  const { session, dispatch, toast } = useEditorSession(scanId);
+  const { session, dispatch, toast, loading, error } = useEditorSession(scanId);
   const { active, next, previous } = useFindingSelection(session.findings, session.activeFindingId);
   const progress = useReviewProgress(session.findings);
 
   useEffect(() => {
+    if (!active || !next || !previous) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
       if (event.code === "ArrowRight") dispatch({ type: "SELECT_FINDING", id: next.id });
@@ -30,11 +33,28 @@ export function EditorWorkspace({ scanId }: { scanId: string }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [active.severity, dispatch, next.id, previous.id]);
+  }, [active, dispatch, next, previous]);
 
   useEffect(() => {
     if (progress.canFinish && session.reviewCompletedAt) navigate(`/scan/editor/${scanId}/summary`);
   }, [navigate, progress.canFinish, scanId, session.reviewCompletedAt]);
+
+  if (loading) {
+    return <Card className="p-6">Loading Editor Session...</Card>;
+  }
+
+  if (error || !active) {
+    return (
+      <Card className="p-6">
+        <h2 className="text-2xl font-semibold">Editor Session unavailable</h2>
+        <p className="mt-3 leading-7 text-white/56">{error || "This scan has no Risk Findings to review."}</p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button onClick={() => navigate("/scan/history")}>Open Scan History</Button>
+          <Button variant="secondary" onClick={() => navigate("/scan/new")}>Start New Scan</Button>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <>

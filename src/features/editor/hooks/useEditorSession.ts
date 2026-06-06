@@ -53,6 +53,8 @@ function reducer(session: EditorSession, action: Action): EditorSession {
 export function useEditorSession(scanId: string) {
   const initialFindings = buildEditorFindings();
   const [toast, setToast] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [session, dispatchBase] = useReducer(reducer, {
     scanId,
     findings: initialFindings,
@@ -80,12 +82,17 @@ export function useEditorSession(scanId: string) {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError("");
     loadEditorSession(scanId)
       .then((loaded) => {
         if (!cancelled) dispatchBase({ type: "LOAD_SESSION", session: loaded } as Action);
       })
-      .catch(() => {
-        if (!cancelled) setToast("Using local editor state until session data loads.");
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Editor Session could not be loaded.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -98,5 +105,5 @@ export function useEditorSession(scanId: string) {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  return { session, dispatch, toast };
+  return { session, dispatch, toast, loading, error };
 }
