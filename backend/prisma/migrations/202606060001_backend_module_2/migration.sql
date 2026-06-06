@@ -1,0 +1,2 @@
+-- Backend Module 2 initial Prisma migration placeholder.
+-- Run `npx prisma migrate dev --name backend_module_2` to generate the engine-specific SQL.

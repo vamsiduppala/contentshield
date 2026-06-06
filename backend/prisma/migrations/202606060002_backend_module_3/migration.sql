@@ -1,0 +1,2 @@
+-- Backend Module 3 editor workflow migration placeholder.
+-- Run `npx prisma migrate dev --name backend_module_3` to generate SQL for the target database.

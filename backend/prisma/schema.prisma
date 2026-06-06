@@ -1,0 +1,477 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VideoStatus {
+  uploaded
+  processing
+  ready
+  failed
+  deleted
+}
+
+enum ScanJobStatus {
+  queued
+  processing
+  completed
+  failed
+  canceled
+}
+
+enum ProcessingStepStatus {
+  pending
+  running
+  completed
+  failed
+  skipped
+}
+
+enum ScanDepth {
+  fast
+  balanced
+  deep
+}
+
+enum PlatformPreset {
+  youtube
+  tiktok
+  instagram
+}
+
+enum ContentType {
+  geopolitics
+  podcast
+  documentary
+  gaming
+  news
+  education
+  other
+}
+
+enum ScanLanguage {
+  english
+  telugu
+  hindi
+  spanish
+  auto
+}
+
+enum RiskSource {
+  speech
+  onscreen_text
+  caption
+}
+
+enum RiskSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum ScanVerdict {
+  safe
+  limited_risk
+  high_risk
+  critical_risk
+}
+
+enum ProcessingLogLevel {
+  info
+  warn
+  error
+}
+
+enum EditorSessionStatus {
+  not_started
+  in_progress
+  completed
+  locked
+}
+
+enum FindingReviewStatus {
+  pending
+  beeped
+  muted
+  blurred
+  replaced
+  fixed
+  ignored
+}
+
+enum EditorActionType {
+  beep
+  mute
+  blur
+  replace
+  fix
+  ignore
+  note
+  undo
+}
+
+enum ReplacementSource {
+  ai
+  user
+  system
+}
+
+enum EditorExportFormat {
+  pdf
+  csv
+  premiere_markers
+  capcut_notes
+  json
+}
+
+enum EditorExportStatus {
+  queued
+  processing
+  completed
+  failed
+}
+
+enum SubscriptionPlan {
+  free
+  creator_pro
+  enterprise
+}
+
+model Organization {
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  plan           SubscriptionPlan @default(free)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  users          User[]
+  videos         Video[]
+  scanJobs       ScanJob[]
+  editorSessions EditorSession[]
+  exportJobs     ExportJob[]
+}
+
+model User {
+  id             String           @id @default(cuid())
+  organizationId String
+  email          String           @unique
+  passwordHash   String
+  salt           String
+  firstName      String
+  lastName       String
+  role           String           @default("member")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  uploadedVideos Video[]
+  createdScans   ScanJob[]
+  editorSessions EditorSession[]
+  exportJobs     ExportJob[]
+  notes          EditorNote[]
+  findingActions FindingAction[]
+  reviewStates   FindingReviewState[]
+  presence       CollaborationPresence[]
+
+  @@index([organizationId])
+}
+
+model Video {
+  id               String      @id @default(cuid())
+  organizationId   String
+  uploadedByUserId String
+  originalFileName String
+  storageKey       String
+  storageBucket    String
+  mimeType         String
+  fileSizeBytes    BigInt
+  durationSeconds  Int?
+  width            Int?
+  height           Int?
+  status           VideoStatus @default(uploaded)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  uploadedBy       User         @relation(fields: [uploadedByUserId], references: [id])
+  scanJobs         ScanJob[]
+
+  @@index([organizationId])
+}
+
+model ScanJob {
+  id              String        @id @default(cuid())
+  organizationId  String
+  videoId         String
+  createdByUserId String
+  status          ScanJobStatus @default(queued)
+  progressPercent Int           @default(0)
+  currentStage    String        @default("queued")
+  scanDepth       ScanDepth
+  platformPreset  PlatformPreset
+  contentType     ContentType
+  language        ScanLanguage
+  config          Json
+  errorMessage    String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  video           Video         @relation(fields: [videoId], references: [id])
+  createdBy       User          @relation(fields: [createdByUserId], references: [id])
+  steps           ProcessingStep[]
+  transcripts     TranscriptSegment[]
+  ocrSegments     OcrSegment[]
+  captions        CaptionSegment[]
+  findings        RiskFinding[]
+  categorySummary RiskCategorySummary[]
+  result          ScanResult?
+  logs            ProcessingLog[]
+
+  @@index([organizationId, status])
+  @@index([videoId])
+}
+
+model ProcessingStep {
+  id              String               @id @default(cuid())
+  scanJobId       String
+  name            String
+  status          ProcessingStepStatus @default(pending)
+  progressPercent Int                  @default(0)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  metadata        Json?
+  scanJob         ScanJob              @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model TranscriptSegment {
+  id           String     @id @default(cuid())
+  scanJobId    String
+  startTime    Float
+  endTime      Float
+  text         String
+  confidence   Float
+  speakerLabel String?
+  source       RiskSource @default(speech)
+  createdAt    DateTime   @default(now())
+  scanJob      ScanJob    @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model OcrSegment {
+  id              String     @id @default(cuid())
+  scanJobId       String
+  startTime       Float
+  endTime         Float
+  detectedText    String
+  boundingBox     Json?
+  confidence      Float
+  frameStorageKey String?
+  source          RiskSource @default(onscreen_text)
+  createdAt    DateTime   @default(now())
+  scanJob      ScanJob    @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model CaptionSegment {
+  id        String     @id @default(cuid())
+  scanJobId String
+  startTime Float
+  endTime   Float
+  text      String
+  language  String
+  source    RiskSource @default(caption)
+  createdAt DateTime   @default(now())
+  scanJob   ScanJob    @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model RiskFinding {
+  id                    String       @id @default(cuid())
+  scanJobId             String
+  startTime             Float
+  endTime               Float
+  phrase                String
+  normalizedPhrase      String
+  source                RiskSource
+  category              String
+  severity              RiskSeverity
+  confidence            Float
+  contextSnippet        String
+  suggestedReplacement  String
+  suggestedReplacements Json
+  reason                String
+  monetizationImpact    String
+  createdAt             DateTime     @default(now())
+  scanJob               ScanJob      @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model RiskCategorySummary {
+  id                String       @id @default(cuid())
+  scanJobId         String
+  category          String
+  findingCount      Int
+  highestSeverity   RiskSeverity
+  confidenceAverage Float
+  scoreImpact       Float
+  createdAt         DateTime     @default(now())
+  scanJob           ScanJob      @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model ScanResult {
+  id             String      @id @default(cuid())
+  scanJobId      String      @unique
+  organizationId String
+  safetyScore    Int
+  verdict        ScanVerdict
+  totalFindings  Int
+  lowCount       Int
+  mediumCount    Int
+  highCount      Int
+  criticalCount  Int
+  aiSummary      String
+  modelVersion   String
+  generatedAt    DateTime
+  createdAt      DateTime    @default(now())
+  scanJob        ScanJob     @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model ProcessingLog {
+  id        String             @id @default(cuid())
+  scanJobId String
+  level     ProcessingLogLevel
+  message   String
+  metadata  Json?
+  createdAt DateTime           @default(now())
+  scanJob   ScanJob            @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+model EditorSession {
+  id                   String              @id @default(cuid())
+  organizationId       String
+  scanJobId            String
+  videoId              String
+  createdByUserId      String
+  status               EditorSessionStatus @default(not_started)
+  totalFindings        Int                 @default(0)
+  pendingCount         Int                 @default(0)
+  fixedCount           Int                 @default(0)
+  ignoredCount         Int                 @default(0)
+  beepedCount          Int                 @default(0)
+  mutedCount           Int                 @default(0)
+  blurredCount         Int                 @default(0)
+  replacedCount        Int                 @default(0)
+  completionPercentage Int                 @default(0)
+  startedAt            DateTime?
+  completedAt          DateTime?
+  lockedAt             DateTime?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  organization         Organization        @relation(fields: [organizationId], references: [id])
+  createdBy            User                @relation(fields: [createdByUserId], references: [id])
+  reviewStates         FindingReviewState[]
+  actions              FindingAction[]
+  notes                EditorNote[]
+  exportJobs           ExportJob[]
+  presence             CollaborationPresence[]
+
+  @@unique([scanJobId])
+  @@index([organizationId])
+}
+
+model FindingReviewState {
+  id                  String              @id @default(cuid())
+  editorSessionId     String
+  riskFindingId       String
+  status              FindingReviewStatus @default(pending)
+  selectedReplacement String?
+  editorNote          String?
+  reviewedByUserId    String?
+  reviewedAt          DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  editorSession       EditorSession       @relation(fields: [editorSessionId], references: [id], onDelete: Cascade)
+  reviewedBy          User?               @relation(fields: [reviewedByUserId], references: [id])
+
+  @@unique([editorSessionId, riskFindingId])
+}
+
+model FindingAction {
+  id                String           @id @default(cuid())
+  editorSessionId   String
+  riskFindingId     String
+  userId            String
+  actionType        EditorActionType
+  startTime         Float
+  endTime           Float
+  originalPhrase    String
+  replacementPhrase String?
+  reason            String?
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  editorSession     EditorSession    @relation(fields: [editorSessionId], references: [id], onDelete: Cascade)
+  user              User             @relation(fields: [userId], references: [id])
+
+  @@index([editorSessionId, riskFindingId])
+}
+
+model ReplacementSuggestion {
+  id            String            @id @default(cuid())
+  riskFindingId String
+  phrase        String
+  replacement   String
+  confidence    Float
+  source        ReplacementSource
+  createdAt     DateTime          @default(now())
+
+  @@index([riskFindingId])
+}
+
+model EditorNote {
+  id              String        @id @default(cuid())
+  editorSessionId String
+  riskFindingId   String?
+  userId          String
+  note            String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  editorSession   EditorSession @relation(fields: [editorSessionId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id])
+
+  @@index([editorSessionId])
+}
+
+model ExportJob {
+  id                String             @id @default(cuid())
+  organizationId    String
+  editorSessionId   String
+  scanJobId         String
+  requestedByUserId String
+  format            EditorExportFormat
+  status            EditorExportStatus @default(queued)
+  storageKey        String?
+  downloadUrl       String?
+  errorMessage      String?
+  createdAt         DateTime           @default(now())
+  completedAt       DateTime?
+  organization      Organization       @relation(fields: [organizationId], references: [id])
+  editorSession     EditorSession      @relation(fields: [editorSessionId], references: [id], onDelete: Cascade)
+  requestedBy       User               @relation(fields: [requestedByUserId], references: [id])
+
+  @@index([organizationId, status])
+}
+
+model CollaborationPresence {
+  id                String        @id @default(cuid())
+  editorSessionId   String
+  userId            String
+  activeFindingId   String?
+  lastSeenAt        DateTime      @default(now())
+  cursorMetadata    Json?
+  editorSession     EditorSession @relation(fields: [editorSessionId], references: [id], onDelete: Cascade)
+  user              User          @relation(fields: [userId], references: [id])
+
+  @@unique([editorSessionId, userId])
+}
+
