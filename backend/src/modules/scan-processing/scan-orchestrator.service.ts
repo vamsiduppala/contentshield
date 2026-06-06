@@ -91,7 +91,9 @@ export class ScanOrchestratorService {
           verdict: score.verdict as any,
           totalFindings: findings.length,
           ...counts,
-          aiSummary: "This video contains advertiser-sensitive terms related to conflict, death, and political violence. Highest-risk moments appear between 01:10 and 03:40.",
+          aiSummary: findings.length
+            ? "ContentShield AI detected advertiser-sensitive language in the uploaded video. Review each Risk Finding before publishing."
+            : "ContentShield AI completed the scan and found no provider-derived Risk Findings. If a provider fallback was used, review the processing logs before relying on this report.",
           modelVersion: process.env.MOCK_AI_MODE === "false" ? "real-providers-with-fallback-2026-06" : "mock-ai-2026-06",
           generatedAt: new Date()
         }
