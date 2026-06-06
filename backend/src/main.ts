@@ -23,9 +23,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const config = new DocumentBuilder()
-    .setTitle("ContentShield AI Backend Module 2")
-    .setDescription("AI video scan engine: videos, scans, processing status, results, exports.")
-    .setVersion("0.2.0")
+    .setTitle("ContentShield AI API")
+    .setDescription("Real-time monetization safety scanning, editor review, exports, and workspace APIs.")
+    .setVersion("1.0.0")
     .addBearerAuth()
     .build();
   SwaggerModule.setup("docs", app, SwaggerModule.createDocument(app, config));

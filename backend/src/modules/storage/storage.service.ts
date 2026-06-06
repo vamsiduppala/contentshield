@@ -16,4 +16,8 @@ export class StorageService {
   objectExists(storageKey: string) {
     return this.provider.objectExists(storageKey);
   }
+
+  putObject(input: { storageKey: string; content: string | Buffer; mimeType: string }) {
+    return this.provider.putObject(input);
+  }
 }

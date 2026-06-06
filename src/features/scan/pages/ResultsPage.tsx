@@ -6,7 +6,7 @@ import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import { formatDate } from "../../../lib/formatters";
-import { getScanResults } from "../../../lib/mockApi";
+import { getScanResults } from "../../../lib/scanApi";
 import { scoreClass } from "../../../lib/riskUtils";
 import { RiskCategoryGrid } from "../components/RiskCategoryGrid";
 import { RiskFindingsTable } from "../components/RiskFindingsTable";
@@ -64,7 +64,7 @@ export function ResultsPage() {
               <Button variant="secondary"><PenTool size={17} /> Export Editor Notes</Button>
               <Link to={`/scan/editor/${scanId}`}><Button variant="secondary"><Lock size={17} /> Continue to Editor Review</Button></Link>
             </div>
-            <p className="mt-4 text-sm leading-6 text-white/42">Continue opens the Module 3 mock Editor Session. No real video editing is performed.</p>
+            <p className="mt-4 text-sm leading-6 text-white/42">Continue opens the saved Editor Session for this Safety Report.</p>
           </Card>
           <Link to="/scan/history"><Button className="w-full">Open Scan History</Button></Link>
         </aside>

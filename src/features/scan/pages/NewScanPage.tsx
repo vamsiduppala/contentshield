@@ -10,11 +10,11 @@ import { defaultScanConfig } from "../data/mockScans";
 import { FilePreviewCard } from "../components/FilePreviewCard";
 import { ScanConfigPanel } from "../components/ScanConfigPanel";
 import { UploadDropzone } from "../components/UploadDropzone";
-import type { MockUploadFile, ScanConfig } from "../types";
+import type { UploadFile, ScanConfig } from "../types";
 
 export function NewScanPage() {
   const navigate = useNavigate();
-  const [file, setFile] = useState<MockUploadFile | null>(null);
+  const [file, setFile] = useState<UploadFile | null>(null);
   const [config, setConfig] = useState<ScanConfig>(defaultScanConfig);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ export function NewScanPage() {
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan">New Scan Job</p>
             <h1 className="mt-2 text-4xl font-semibold tracking-tight md:text-6xl">Start an AI monetization safety scan.</h1>
-            <p className="mt-4 max-w-2xl leading-8 text-white/56">Upload Video → Scan → Review Risks → Export Report. Module 2 stops at results summary.</p>
+            <p className="mt-4 max-w-2xl leading-8 text-white/56">Upload Video → Scan → Review Risks → Export Report.</p>
           </div>
           <Button onClick={startScan} disabled={!file || loading}>{loading ? "Uploading..." : "Start AI Scan"} <ArrowRight size={17} /></Button>
         </header>
@@ -79,7 +79,7 @@ export function NewScanPage() {
             <UploadDropzone onSelect={(selected) => { setFile(selected); setError(""); }} onError={setError} />
             {file ? <FilePreviewCard file={file} /> : (
               <Card className="p-5">
-                <div className="flex gap-3 text-white/50"><ShieldCheck className="text-cyan" /> No video selected yet. Your file stays local in this mock UI.</div>
+                <div className="flex gap-3 text-white/50"><ShieldCheck className="text-cyan" /> No video selected yet. Selected files upload directly to your private Backblaze bucket.</div>
               </Card>
             )}
           </div>

@@ -1,17 +1,22 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { DashboardLayout } from "../../../components/dashboard/DashboardLayout";
 import { Card } from "../../../components/ui/Card";
-import { buildEditorFindings, getEditorSummary } from "../utils/editorUtils";
 import { EditorSummaryCard } from "../components/EditorSummaryCard";
 import { ExportOptionsPanel } from "../components/ExportOptionsPanel";
+import { loadEditorSummary } from "../../../lib/editorApi";
+import type { EditorSummary } from "../types";
 
 export function EditorSummaryPage() {
-  const findings = buildEditorFindings().map((finding, index) => ({
-    ...finding,
-    status: index === 1 ? "ignored" as const : index === 2 ? "muted" as const : index === 3 ? "blurred" as const : index === 4 ? "replaced" as const : "fixed" as const,
-    selectedReplacement: index === 4 ? "government change" : finding.selectedReplacement
-  }));
-  const summary = getEditorSummary(findings);
+  const { scanId = "" } = useParams();
+  const [summary, setSummary] = useState<EditorSummary | null>(null);
+
+  useEffect(() => {
+    if (scanId) void loadEditorSummary(scanId).then(setSummary);
+  }, [scanId]);
+
+  if (!summary) return <DashboardLayout><Card className="p-5">Loading review summary...</Card></DashboardLayout>;
 
   return (
     <DashboardLayout>
@@ -36,7 +41,7 @@ export function EditorSummaryPage() {
               ))}
             </div>
           </Card>
-          <ExportOptionsPanel />
+          <ExportOptionsPanel scanId={scanId} />
         </div>
       </motion.div>
     </DashboardLayout>

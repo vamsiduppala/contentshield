@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useState } from "react";
 import { buildEditorFindings, getCompletion } from "../utils/editorUtils";
 import type { EditorFinding, EditorSession } from "../types";
+import { applyFindingAction, completeEditorReview, loadEditorSession, saveFindingNote } from "../../../lib/editorApi";
 
 type Action =
   | { type: "SELECT_FINDING"; id: string }
@@ -12,7 +13,8 @@ type Action =
   | { type: "MARK_FIXED" }
   | { type: "IGNORE_FINDING" }
   | { type: "ADD_EDITOR_NOTE"; note: string }
-  | { type: "COMPLETE_REVIEW" };
+  | { type: "COMPLETE_REVIEW" }
+  | { type: "LOAD_SESSION"; session: EditorSession };
 
 function updateActive(session: EditorSession, update: (finding: EditorFinding) => EditorFinding): EditorSession {
   const findings = session.findings.map((finding) => (finding.id === session.activeFindingId ? update(finding) : finding));
@@ -21,6 +23,8 @@ function updateActive(session: EditorSession, update: (finding: EditorFinding) =
 
 function reducer(session: EditorSession, action: Action): EditorSession {
   switch (action.type) {
+    case "LOAD_SESSION":
+      return action.session;
     case "SELECT_FINDING":
       return { ...session, activeFindingId: action.id, currentTime: session.findings.find((finding) => finding.id === action.id)?.timestampStart || session.currentTime };
     case "SET_CURRENT_TIME":
@@ -60,8 +64,33 @@ export function useEditorSession(scanId: string) {
 
   const dispatch = (action: Action, message?: string) => {
     dispatchBase(action);
+    const active = session.findings.find((finding) => finding.id === session.activeFindingId);
+    if (active) {
+      if (action.type === "APPLY_BEEP") void applyFindingAction(scanId, active, "beep");
+      if (action.type === "APPLY_MUTE") void applyFindingAction(scanId, active, "mute");
+      if (action.type === "APPLY_BLUR") void applyFindingAction(scanId, active, "blur");
+      if (action.type === "APPLY_REPLACEMENT") void applyFindingAction(scanId, active, "replace", action.replacement);
+      if (action.type === "MARK_FIXED") void applyFindingAction(scanId, active, "fix");
+      if (action.type === "IGNORE_FINDING") void applyFindingAction(scanId, active, "ignore", undefined, "Reviewed and accepted for editorial context.");
+      if (action.type === "ADD_EDITOR_NOTE") void saveFindingNote(scanId, active.id, action.note);
+    }
+    if (action.type === "COMPLETE_REVIEW") void completeEditorReview(scanId);
     if (message) setToast(message);
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    loadEditorSession(scanId)
+      .then((loaded) => {
+        if (!cancelled) dispatchBase({ type: "LOAD_SESSION", session: loaded } as Action);
+      })
+      .catch(() => {
+        if (!cancelled) setToast("Using local editor state until session data loads.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [scanId]);
 
   useEffect(() => {
     if (!toast) return;

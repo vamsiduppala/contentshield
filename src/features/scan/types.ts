@@ -79,7 +79,7 @@ export interface ExportOption {
   disabled?: boolean;
 }
 
-export interface MockUploadFile {
+export interface UploadFile {
   name: string;
   size: number;
   type: string;

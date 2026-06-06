@@ -10,7 +10,7 @@ export class HealthController {
     return ok({
       api: "ok",
       redisQueue: "configured",
-      storageProvider: "mock-s3-compatible",
+      storageProvider: process.env.S3_BUCKET ? "backblaze-b2-s3" : "not-configured",
       mockAiMode: process.env.MOCK_AI_MODE !== "false"
     });
   }

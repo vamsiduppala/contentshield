@@ -63,6 +63,16 @@ export class S3Service implements StorageProvider {
     }
   }
 
+  async putObject(input: { storageKey: string; content: string | Buffer; mimeType: string }): Promise<string> {
+    await this.client.send(new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: input.storageKey,
+      Body: input.content,
+      ContentType: input.mimeType
+    }));
+    return this.getSignedDownloadUrl(input.storageKey);
+  }
+
   async deleteObject(storageKey: string): Promise<void> {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: storageKey }));
   }

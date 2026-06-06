@@ -27,11 +27,19 @@ export class LlmContextClassifierService {
 
       if (!response.ok) throw new Error(`Gemini API error: ${response.statusText}`);
       
-      const result = await response.json();
-      // Logic to parse Gemini response and update candidates would go here.
-      // For now, we return candidates as-is but have established the connection.
-      
-      return candidates;
+      const result = await response.json() as any;
+      const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) return candidates;
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) return candidates;
+      return candidates.map((candidate, index) => ({
+        ...candidate,
+        ...(parsed[index] || {}),
+        phrase: candidate.phrase,
+        source: candidate.source,
+        startTime: candidate.startTime,
+        endTime: candidate.endTime
+      }));
     } catch (error) {
       console.error("Gemini classification failed, falling back to dictionary results", error);
       return candidates;

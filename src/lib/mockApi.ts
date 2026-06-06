@@ -1,6 +1,6 @@
 import { defaultScanConfig, mockScans, processingSteps } from "../features/scan/data/mockScans";
 import { mockFindings, mockResults } from "../features/scan/data/mockResults";
-import type { MockUploadFile, Scan, ScanConfig, ScanResult } from "../features/scan/types";
+import type { UploadFile, Scan, ScanConfig, ScanResult } from "../features/scan/types";
 import { scoreVerdict } from "./riskUtils";
 import { api } from "./api";
 
@@ -9,7 +9,7 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === "true";
 const scans = new Map<string, Scan>(mockScans.map((scan) => [scan.id, scan]));
 const results = new Map<string, ScanResult>(Object.entries(mockResults));
 
-export async function createScan(file: MockUploadFile, config: ScanConfig): Promise<Scan> {
+export async function createScan(file: UploadFile, config: ScanConfig): Promise<Scan> {
   if (!USE_MOCK) {
     return api.post("/scans", { fileName: file.name, fileSize: file.size, config });
   }

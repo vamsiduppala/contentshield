@@ -18,7 +18,7 @@ export function ProductMockup() {
           <p className="text-xs uppercase tracking-[0.22em] text-white/40">Scan preview</p>
           <h3 className="mt-1 text-xl font-semibold">Creator draft review</h3>
         </div>
-        <span className="rounded-full border border-acid/40 bg-acid/10 px-3 py-1 text-xs font-semibold text-acid">Mock state</span>
+        <span className="rounded-full border border-acid/40 bg-acid/10 px-3 py-1 text-xs font-semibold text-acid">Live scan state</span>
       </div>
       <div className="relative mt-5 grid gap-3 sm:grid-cols-2">
         {stats.map(([label, value], index) => (

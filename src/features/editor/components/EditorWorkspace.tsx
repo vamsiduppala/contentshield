@@ -38,7 +38,7 @@ export function EditorWorkspace({ scanId }: { scanId: string }) {
 
   return (
     <>
-      <ReviewProgressBar scanId={scanId} findings={session.findings} />
+      <ReviewProgressBar scanId={scanId} findings={session.findings} onFinish={() => dispatch({ type: "COMPLETE_REVIEW" }, "Review completed")} />
       {toast && <div className="fixed right-5 top-5 z-50 rounded-2xl border border-acid/30 bg-acid/10 px-4 py-3 text-sm text-acid shadow-premium">{toast}</div>}
       <div className="grid gap-5 xl:grid-cols-[40%_35%_25%]">
         <VideoReviewPlayer currentTime={session.currentTime} findings={session.findings} activeId={session.activeFindingId} onSelect={(id) => dispatch({ type: "SELECT_FINDING", id })} />

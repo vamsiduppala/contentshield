@@ -4,7 +4,7 @@ import { Card } from "../../../components/ui/Card";
 import { useReviewProgress } from "../hooks/useReviewProgress";
 import type { EditorFinding } from "../types";
 
-export function ReviewProgressBar({ scanId, findings }: { scanId: string; findings: EditorFinding[] }) {
+export function ReviewProgressBar({ scanId, findings, onFinish }: { scanId: string; findings: EditorFinding[]; onFinish?: () => void }) {
   const progress = useReviewProgress(findings);
   return (
     <Card className="sticky top-0 z-30 mb-5 rounded-3xl p-4">
@@ -21,7 +21,7 @@ export function ReviewProgressBar({ scanId, findings }: { scanId: string; findin
             <span className="block h-2 rounded-full bg-acid transition-all" style={{ width: `${progress.completion}%` }} />
           </div>
         </div>
-        <Link to={`/scan/editor/${scanId}/summary`}>
+        <Link to={`/scan/editor/${scanId}/summary`} onClick={onFinish}>
           <Button disabled={!progress.canFinish}>Finish Review</Button>
         </Link>
       </div>

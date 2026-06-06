@@ -1,9 +1,9 @@
 import { FileVideo } from "lucide-react";
 import { formatBytes } from "../../../lib/formatters";
 import { Card } from "../../../components/ui/Card";
-import type { MockUploadFile } from "../types";
+import type { UploadFile } from "../types";
 
-export function FilePreviewCard({ file }: { file: MockUploadFile }) {
+export function FilePreviewCard({ file }: { file: UploadFile }) {
   const format = file.name.split(".").pop()?.toUpperCase() || "MP4";
   return (
     <Card className="p-5">

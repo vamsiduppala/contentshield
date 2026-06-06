@@ -8,7 +8,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { MetricCard } from "../../components/ui/MetricCard";
 import { getCreatorContent, type CreatorContent, type LocalUser } from "../../lib/localAuth";
-import { getScanHistory } from "../../lib/mockApi";
+import { getScanHistory } from "../../lib/scanApi";
 import { ScanSummaryCard } from "../scan/components/ScanSummaryCard";
 import type { Scan } from "../scan/types";
 
@@ -41,7 +41,7 @@ export function DashboardPage() {
     const highRisk = scans.filter((scan) => scan.score < 70).length;
     const suggestions = scans.reduce((sum, scan) => sum + scan.riskCount, 0);
     return [
-      { label: "Total Scans", value: String(total), detail: "Mock Scan Jobs reviewed" },
+      { label: "Total Scans", value: String(total), detail: "Scan Jobs reviewed" },
       { label: "Average Safety Score", value: String(average), detail: "Across recent videos" },
       { label: "High-Risk Videos", value: String(highRisk), detail: "Need review before upload" },
       { label: "Fix Suggestions Generated", value: String(suggestions), detail: "Safer alternatives surfaced" }
@@ -68,7 +68,7 @@ export function DashboardPage() {
             <div>
               <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-acid">Next best action</p>
               <h2 className="text-3xl font-semibold tracking-tight md:text-5xl">Upload your next draft before YouTube reviews it.</h2>
-              <p className="mt-4 max-w-2xl leading-8 text-white/56">The core Module 2 flow is ready: upload mock file, watch AI processing, and open the results summary.</p>
+              <p className="mt-4 max-w-2xl leading-8 text-white/56">Upload a video, watch ContentShield AI process speech, captions, and on-screen text, then open the Safety Report.</p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link to="/scan/new"><Button>Start New Scan <ArrowUpRight size={17} /></Button></Link>
                 <Link to="/scan/history"><Button variant="secondary">View Scan History</Button></Link>
@@ -130,7 +130,7 @@ export function DashboardPage() {
             </Card>
             <Card className="p-5">
               <h2 className="text-xl font-semibold">Plan status</h2>
-              <p className="mt-3 leading-7 text-white/52">Creator Pro mock plan. Upgrade prompts are visual only until backend billing exists.</p>
+              <p className="mt-3 leading-7 text-white/52">Creator Pro plan is active for this workspace.</p>
               <Button className="mt-5 w-full" variant="secondary">Upgrade Plan</Button>
             </Card>
           </aside>

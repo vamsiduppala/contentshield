@@ -1,5 +1,3 @@
-import { mockFindings } from "../../scan/data/mockResults";
-import type { RiskFinding } from "../../scan/types";
 import type { EditorFinding, EditorSummary, FindingStatus } from "../types";
 
 const replacements: Record<string, string[]> = {
@@ -18,17 +16,7 @@ const reasons: Record<string, string> = {
 };
 
 export function buildEditorFindings(): EditorFinding[] {
-  return mockFindings.map((finding: RiskFinding, index) => ({
-    ...finding,
-    timestampStart: finding.timestamp,
-    timestampEnd: addSeconds(finding.timestamp, index === 1 ? 7 : 5),
-    suggestedReplacements: replacements[finding.phrase] || [finding.suggestion],
-    status: "pending",
-    transcriptSnippet: transcriptFor(finding.phrase),
-    screenTextSnippet: finding.source === "onscreen_text" ? "The screen shows dead bodies near the border..." : undefined,
-    reason: reasons[finding.category] || "This phrase may be interpreted as advertiser-sensitive depending on context.",
-    monetizationImpact: finding.severity === "critical" ? "High chance of limited ads without review." : "Moderate chance of review friction."
-  }));
+  return [];
 }
 
 export function isResolved(status: FindingStatus) {

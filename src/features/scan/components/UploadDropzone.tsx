@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 import { UploadCloud } from "lucide-react";
 import { useRef, useState } from "react";
 import { cn } from "../../../lib/cn";
-import type { MockUploadFile } from "../types";
+import type { UploadFile } from "../types";
 
 const allowed = [".mp4", ".mov", ".mkv", ".webm"];
 
-export function UploadDropzone({ onSelect, onError }: { onSelect: (file: MockUploadFile) => void; onError: (message: string) => void }) {
+export function UploadDropzone({ onSelect, onError }: { onSelect: (file: UploadFile) => void; onError: (message: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
